@@ -1,0 +1,78 @@
+- name: Run with inline Compose file 
+  hosts: hwm02
+  gather_facts: false
+  environment:
+    TEST_DB_HOST: database
+    TEST_DB_USER: root
+    TEST_DB_PASS: change-me
+    TEST_DB_NAME: webinar_test
+
+  tasks:
+    - name: Where i
+      ansible.builtin.command: pwd
+    - name: Make test dir
+      file:
+        path: /tmp/test
+        state: directory
+    - name: Copy Dockerfile
+      copy:
+        src: Dockerfile
+        dest: /tmp/test
+    - name: Copy app
+      copy:
+        src: app.py
+        dest: /tmp/test
+    - name: Copy requirements
+      copy:
+        src: requirements.txt
+        dest: /tmp/test
+    - name: Copy dump
+      copy:
+        src: test_dump.sql
+        dest: /tmp/test
+    - name: Copy .env
+      copy:
+        src: .env
+        dest: /tmp/test
+
+    - name: Make image
+      ansible.builtin.shell: docker build -t myapp .
+      args:
+        chdir: /tmp/test
+
+    - name: What there
+      ansible.builtin.command: ls -l /tmp/test
+
+    - community.docker.docker_compose:
+        project_name: myapp
+        definition:
+          version: '3.9'
+          services:
+              database:
+                image: "mysql:latest"
+                environment:
+                  - MYSQL_ROOT_PASSWORD=${TEST_DB_PASS}
+                  - MYSQL_DATABASE=${TEST_DB_NAME}
+                volumes:
+                  - /tmp/test:/docker-entrypoint-initdb.d
+              app:
+                image: myapp
+                environment:
+                  - TEST_DB_HOST=${TEST_DB_HOST}
+                  - TEST_DB_USER=${TEST_DB_USER}
+                  - TEST_DB_PASS=${TEST_DB_PASS}
+                  - TEST_DB_NAME=${TEST_DB_NAME}
+                depends_on:
+                  - database
+
+      register: output
+
+    - ansible.builtin.debug:
+        var: output
+
+    - name: Wait ready for connect to db
+      ansible.builtin.pause:
+        seconds: 50
+
+    - name: Run App Again
+      ansible.builtin.shell: docker start myapp_app_1
