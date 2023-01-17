@@ -1,0 +1,4 @@
+FROM mysql:latest
+ADD test_dump.sql /docker-entrypoint-initdb.d
+# REMOVE HARDCODE
+RUN mysql -pchange-me webinar_test < /docker-entrypoint-initdb.d/test_dump.sql

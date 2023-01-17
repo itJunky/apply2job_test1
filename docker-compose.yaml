@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  database:
+    #image: "mysql:latest"
+    image: "mymysql:latest"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${TEST_DB_PASS}  
+      - MYSQL_DATABASE=${TEST_DB_NAME}
+    volumes:
+      #- ./mysql-dump:/docker-entrypoint-initdb.d
+      - ./mysql-dump:/docker-entrypoint-initdb.d
+  app:
+    build: .
+    environment:
+      - TEST_DB_HOST=${TEST_DB_HOST}
+      - TEST_DB_USER=${TEST_DB_USER}
+      - TEST_DB_PASS=${TEST_DB_PASS}  
+      - TEST_DB_NAME=${TEST_DB_NAME}
+    depends_on:
+      - database
+
