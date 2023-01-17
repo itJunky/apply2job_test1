@@ -10,7 +10,7 @@ import socket
 DB_USER = os.getenv('TEST_DB_USER')
 DB_PASS = os.getenv('TEST_DB_PASS')
 DB_HOST = os.getenv('TEST_DB_HOST')
-DB_NAME = 'webinar_test'
+DB_NAME = os.getenv('TEST_DB_NAME')
 
 if DB_USER:
     print(f'Have credentials for DB_USER: {DB_USER}')
@@ -19,6 +19,7 @@ else:
     DB_USER = 'root'
     DB_PASS = 'change-me'
     DB_HOST = 'localhost'
+    DB_NAME = 'webina_test'
 
 Base = declarative_base()
 db_path = 'mysql+pymysql://' + DB_USER + ':' + DB_PASS + '@' + DB_HOST + '/' + DB_NAME
